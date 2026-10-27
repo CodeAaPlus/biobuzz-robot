@@ -17,9 +17,9 @@ import java.util.List;
 
 public class ThreeWheelTuner extends Procedure {
 
-    private static String leftEncoderName = "lf";
-    private static String rightEncoderName = "rr";
-    private static String strafeEncoderName = "lr";
+    private static String leftEncoderName = "br";
+    private static String rightEncoderName = "bl";
+    private static String strafeEncoderName = "fl";
 
     public ThreeWheelTuner() {
         super("Three Wheel Tuner", "Tune three odometry pods");
@@ -29,35 +29,21 @@ public class ThreeWheelTuner extends Procedure {
     public void run() throws InterruptedException {
         Inputs setup = inputs("Encoder Setup",
                 "Set the motor ports that the three odometry encoders are plugged into.");
-        Inputs.Field<String> leftEncoder = setup.s("Left Encoder Motor Name").withDefault("lf");
-        Inputs.Field<String> rightEncoder = setup.s("Right Encoder Motor Name").withDefault("rr");
-        Inputs.Field<String> strafeEncoder = setup.s("Strafe Encoder Motor Name").withDefault("lr");
+        Inputs.Field<String> leftEncoder = setup.s("Left Encoder Motor Name").withDefault("br");
+        Inputs.Field<String> rightEncoder = setup.s("Right Encoder Motor Name").withDefault("bl");
+        Inputs.Field<String> strafeEncoder = setup.s("Strafe Encoder Motor Name").withDefault("fl");
         awaitInputs(setup);
         leftEncoderName = leftEncoder.get();
         rightEncoderName = rightEncoder.get();
         strafeEncoderName = strafeEncoder.get();
 
-        Inputs resolution = inputs("Encoder Resolution Identification",
-                "Set a positive push distance in inches. Keep the robot straight during each push.");
-        Inputs.Field<Double> distance = resolution.d("Distance").withDefault(48.0);
-        awaitInputs(resolution);
-        if (!(distance.get() > 0.0)) {
-            abort("Enter a positive distance in inches.");
-            return;
-        }
-
-        List<Double> left = measure("Left", distance.get());
-        if (left == null) {
-            return;
-        }
-        List<Double> right = measure("Right", distance.get());
-        if (right == null) {
-            return;
-        }
-        List<Double> strafe = measure("Strafe", distance.get());
-        if (strafe == null) {
-            return;
-        }
+        // Preset resolutions from the measured 48-inch translation tests.
+        // Encoder directions are provisional until verified with the FINAL br/bl/fl mapping.
+        // A changed hub port or motor direction can change the observed raw tick sign.
+        // Skip resolution tests; retain pod offset and turn calibration stages.
+        List<Double> left = List.of(336.9166666666667, Encoder.FORWARD);
+        List<Double> right = List.of(335.6666666666667, Encoder.REVERSE);
+        List<Double> strafe = List.of(339.2916666666667, Encoder.REVERSE);
 
         double leftTicksPerInch = left.get(0);
         double rightTicksPerInch = right.get(0);
@@ -91,7 +77,13 @@ public class ThreeWheelTuner extends Procedure {
             abort("Turn stage ended without positive rotation. Rotate 360 degrees CCW, then press Stop.");
             return;
         }
-        double strafeX = (leftOffsets.get(1) + rightOffsets.get(1)) / 2.0 * turn / lateral;
+        // Measure perpendicular pod offset from raw encoder travel during one full rotation.
+        Double strafeX = runOpMode(new ThreeWheelStrafeOffset(
+                strafeEncoderName, lateral, strafe.get(1)));
+        if (strafeX == null) {
+            abort("Strafe offset stage failed: check for nonzero ticks and rotate 360 degrees CCW.");
+            return;
+        }
 
         result("leftEncoderName", leftEncoderName);
         result("rightEncoderName", rightEncoderName);
@@ -162,13 +154,20 @@ public class ThreeWheelTuner extends Procedure {
         for (LynxModule hub : map.getAll(LynxModule.class)) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-        for (String name : new String[]{"lf", "lr", "rf", "rr"}) {
+
+        for (String name : new String[]{"fl", "bl", "fr", "br"}) {
             DcMotorEx motor = map.get(DcMotorEx.class, name);
             motor.setPower(0);
-            motor.setDirection(name.equals("lf") || name.equals("lr")
-                    ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
-            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            motor.setDirection(
+                    name.equals("fl") || name.equals("bl")
+                            ? DcMotorSimple.Direction.REVERSE
+                            : DcMotorSimple.Direction.FORWARD
+            );
+            motor.setZeroPowerBehavior(
+                    DcMotor.ZeroPowerBehavior.FLOAT
+            );
         }
+
         return new ThreeWheelLocalizer(map, config);
     }
 }
@@ -288,3 +287,54 @@ class ThreeWheelTurn extends TuningOpMode<Double> {
 }
 
 
+
+
+/** Calibrates the perpendicular pod's forward/backward (X) offset from raw ticks. */
+class ThreeWheelStrafeOffset extends TuningOpMode<Double> {
+    private final String encoderName;
+    private final double inchesPerTick;
+    private final double encoderDirection;
+
+    ThreeWheelStrafeOffset(String encoderName, double inchesPerTick, double encoderDirection) {
+        super("Strafe Pod X Offset Identification",
+                "After Start, rotate exactly 360 degrees CCW about the robot center, " +
+                "without translating. Press Stop to save the measurement.", true);
+        this.encoderName = encoderName;
+        this.inchesPerTick = inchesPerTick;
+        this.encoderDirection = encoderDirection;
+    }
+
+    @Override
+    protected Double runTuningOpMode() {
+        // Apply the same motor-direction settings as the other tuner stages.
+        // This matters because FTC motor direction can affect encoder sign.
+        for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+        for (String name : new String[]{"fl", "bl", "fr", "br"}) {
+            DcMotorEx motor = hardwareMap.get(DcMotorEx.class, name);
+            motor.setPower(0);
+            motor.setDirection(name.equals("fl") || name.equals("bl")
+                    ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
+
+        DcMotorEx encoder = hardwareMap.get(DcMotorEx.class, encoderName);
+        waitForStart();
+        int start = encoder.getCurrentPosition();
+        int current = start;
+        while (!isStopRequested()) {
+            current = encoder.getCurrentPosition();
+            telemetry.addData("Encoder", encoderName);
+            telemetry.addData("Delta ticks", current - start);
+            telemetry.update();
+            idle();
+        }
+        int delta = current - start;
+        if (delta == 0) return null;
+
+        // A positive CCW angle is +2pi rad. Positive Y is left.
+        // The wheel's signed lateral travel is +X_offset * angle.
+        return delta * encoderDirection * inchesPerTick / (2.0 * Math.PI);
+    }
+}
