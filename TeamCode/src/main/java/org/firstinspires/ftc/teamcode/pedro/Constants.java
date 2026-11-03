@@ -58,16 +58,21 @@ public class Constants {
                 Controller secondaryTranslationalLateral = Controller.proportional(0.6653238340524933);
 
                 c.forwardTranslational.set(Controller.piecewise(secondaryTranslationalForward).put(2.5, primaryTranslationalForward));
-                c.strafeTranslational.set(Controller.piecewise(secondaryTranslationalLateral).put(2.5, primaryTranslationalLateral));
+                c.strafeTranslational.set(Controller.zero); //Controller.piecewise(secondaryTranslationalLateral).put(2.5, primaryTranslationalLateral)
 
                 c.coast.set(Controller.proportionalFeedforward(0.014139985623614022));
                 c.brake.set(Controller.proportionalFeedforward(0.012018987780071919));
 
-                c.headingFeedback.set(Controller.proportional(0.25038185758823));
+                c.headingFeedback.set(Controller.proportional(0)); //0.25038185758823
                 c.headingBrakeCoefficients.set(Vector2D.cartesian(0.06700378422067145, 0.004844469373291129));
 
-                c.linearBrakeCoefficients.set(Matrix.diag(3.328985682836227, -0.006663350053963376));
-                c.quadraticBrakeCoefficients.set(Matrix.diag(-0.04853306909871173, 0.0022065612597849866));
+                c.linearBrakeCoefficients.set(
+                        Matrix.diag(0.0, 0.0)
+                );
+
+                c.quadraticBrakeCoefficients.set(
+                        Matrix.diag(0.0, 0.0)
+                );
 
                 c.maxAchievableForwardVelocity.set(73.18707579121386);
                 c.maxAchievableStrafeVelocity.set(58.74527667268901);
