@@ -39,12 +39,12 @@ public class Constants {
         c.leftEncoderName.set("br");
         c.rightEncoderName.set("bl");
         c.strafeEncoderName.set("fl");
-        c.leftPodY.set(4.3549959458227985);
-        c.rightPodY.set(-4.190299294100751);
-        c.strafePodX.set(-4.27097361714859);
+        c.leftPodY.set(4.61623891062314);
+        c.rightPodY.set(-3.5542294667602965);
+        c.strafePodX.set(-4.789307043502153);
         c.forwardTicksToInches.set(0.002973619489200135);
         c.strafeTicksToInches.set(0.002947316713741864);
-        c.turnTicksToRadians.set(0.002909487021621254);
+        c.turnTicksToRadians.set(0.002794435080373991);
         c.leftEncoderDirection.set(Encoder.FORWARD);
         c.rightEncoderDirection.set(Encoder.REVERSE);
         c.strafeEncoderDirection.set(Encoder.REVERSE);
@@ -67,7 +67,7 @@ public class Constants {
                 c.coast.set(Controller.proportionalFeedforward(0.014139985623614022));
                 c.brake.set(Controller.proportionalFeedforward(0.012018987780071919));
 
-                c.headingFeedback.set(Controller.proportional(0)); //0.25038185758823
+                c.headingFeedback.set(Controller.proportional(2.5)); //0.25038185758823
                 c.headingBrakeCoefficients.set(Vector2D.cartesian(0.06700378422067145, 0.004844469373291129));
 
                 c.linearBrakeCoefficients.set(
