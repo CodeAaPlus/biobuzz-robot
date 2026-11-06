@@ -30,8 +30,6 @@ public class PanelsHoldTest extends OpMode {
 
     @Override
     public void loop() {
-        PanelsForesightTuning.apply();
-
         if (gamepad1.a && !previousA) {
             follower.hold(follower.pose(), true);
         }
@@ -48,12 +46,6 @@ public class PanelsHoldTest extends OpMode {
         telemetry.addData("Y", follower.pose().y());
         telemetry.addData("Heading", Math.toDegrees(follower.pose().heading()));
         telemetry.addData("Holding", follower.holding());
-        telemetry.addData("Heading kP",
-            PanelsForesightTuning.headingKP);
-        telemetry.addData("Forward Secondary kP",
-            PanelsForesightTuning.forwardSecondaryKP);
-        telemetry.addData("Strafe Secondary kP",
-            PanelsForesightTuning.strafeSecondaryKP);
         telemetry.update();
     }
 

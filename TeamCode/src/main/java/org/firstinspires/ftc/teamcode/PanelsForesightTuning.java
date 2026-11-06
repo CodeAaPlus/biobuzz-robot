@@ -3,19 +3,21 @@ package org.firstinspires.ftc.teamcode;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.algorithm.ForesightConfig;
 import com.pedropathing.controllers.Controller;
+import com.pedropathing.math.Matrix;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Configurable
 public class PanelsForesightTuning {
 
-    public static double headingKP = 14.201941246246868;
+    public static double headingKP = 0.0;
 
-    public static double forwardPrimaryKP = 1.3154302879171047;
-    public static double forwardSecondaryKP = 0.4860163424407298;
+    public static double forwardPrimaryKP = 0.4864580451208012;
+    public static double forwardSecondaryKP = 0.1797332492737755;
 
-    public static double strafePrimaryKP = 2.6218461576982968;
-    public static double strafeSecondaryKP = 0.9687020982499283;
+    public static double strafePrimaryKP = 0.0;
+    public static double strafeSecondaryKP = 0.0;
+    public static double forwardLinearBrake = 0.0;
 
     // Hold Test scaling
     public static double holdTranslationScale = 0.45;
