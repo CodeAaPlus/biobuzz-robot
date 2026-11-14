@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -48,6 +49,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * D-pad up/down selects the two latch positions; releasing keeps the last command.
  */
 
+@Configurable
 @TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
 public class BasicDrive extends LinearOpMode {
 
@@ -67,19 +69,19 @@ public class BasicDrive extends LinearOpMode {
     private boolean previousShooterTriggerPressed = false;
     private double speed;
     // Driver speed multipliers and mechanism power magnitudes.
-    private static final double DRIVE_SPEED = 1.0;
-    private static final double SLOW_DRIVE_SPEED = 0.5;
-    private static final double SWEEPER_POWER = 1.0;
-    private static final double ESOPHAGUS_POWER = 1.0;
-    private static final double FEEDER_POWER = 1.0;
+    public static volatile double DRIVE_SPEED = 1.0;
+    public static volatile double SLOW_DRIVE_SPEED = 0.5;
+    public static volatile double SWEEPER_POWER = 1.0;
+    public static volatile double ESOPHAGUS_POWER = 1.0;
+    public static volatile double FEEDER_POWER = 1.0;
     // Velocity target; actual speed depends on the encoder conversion and hardware.
-    private static final double SHOOTER_RPM = 3500;
+    public static volatile double SHOOTER_RPM = 3500;
     // Named for the controls until the physical latch positions are confirmed.
-    private static final double LATCH_DPAD_UP_POSITION = 0.730;
-    private static final double LATCH_DPAD_DOWN_POSITION = 0.390;
+    public static volatile double LATCH_DPAD_UP_POSITION = 0.730;
+    public static volatile double LATCH_DPAD_DOWN_POSITION = 0.390;
     // Assumed encoder ticks per revolution of the shaft whose RPM is commanded.
     // Verify the motor encoder and gearing before interpreting this as flywheel RPM.
-    private static final double MOTOR_TICKS_PER_REV = 103.8;
+    public static volatile double MOTOR_TICKS_PER_REV = 28;
 
     @Override
     public void runOpMode() {
@@ -172,6 +174,10 @@ public class BasicDrive extends LinearOpMode {
                 outake(SHOOTER_RPM);
             }
             previousShooterTriggerPressed = shooterTriggerPressed;
+            // Keep an enabled shooter in sync with live Panels RPM and encoder edits.
+            if (toggleOutake) {
+                setShooterRpm(SHOOTER_RPM);
+            }
 
             // Hold-to-run feeder control, independent of the shooter toggle.
             double feederPower = gamepad2.right_bumper ? FEEDER_POWER : 0.0;
