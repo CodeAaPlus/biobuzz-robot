@@ -18,14 +18,14 @@ public class FixedMecanum extends Mecanum {
             DrivePowers powers) {
 
         double forward = powers.forward();
-        double strafe = -powers.strafe();
+        double strafe = powers.strafe();
         double turn = powers.turn();
 
         return new double[]{
-            forward - strafe - turn,
-            forward + strafe + turn,
             forward + strafe - turn,
-            forward - strafe + turn
+            forward + strafe + turn,
+            forward - strafe - turn,
+            forward + strafe + turn
         };
     }
 }

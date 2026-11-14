@@ -29,50 +29,57 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-/*
- * This file contains an example of a Linear "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When a selection is made from the menu, the corresponding OpMode is executed.
+/**
+ * Robot-relative mecanum TeleOp: stick directions are relative to the robot,
+ * not the field. No heading correction or autonomous path following is used.
  *
- * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
- * This code will work with either a Mecanum-Drive or an X-Drive train.
- * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
- * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
- *
- * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
- *
- * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
- * Each motion axis is controlled by one Joystick axis.
- *
- * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
- * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
- * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
- *
- * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
- * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
- * the direction of all 4 motors (see code below).
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ * Gamepad 1: left stick drives/strafe, right stick X turns; hold B for half speed.
+ * Gamepad 2: hold A to run the intake/feed motors forward, B to reverse them.
+ * Each right-trigger press toggles the shooter velocity target on or off.
+ * Hold gamepad 2 right bumper to run the feeder at full power; release to stop.
+ * D-pad up/down selects the two latch positions; releasing keeps the last command.
  */
 
 @TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-@Disabled
 public class BasicDrive extends LinearOpMode {
 
-    // Declare OpMode members for each of the 4 motors.
+    // Match timer, drivetrain motors (front/back, left/right), and mechanisms.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor fl = null;
     private DcMotor bl = null;
     private DcMotor fr = null;
     private DcMotor br = null;
+    private DcMotor sweeper = null;
+    private Servo latch = null;
+    private CRServo feeder = null;
+    private DcMotor esophagus = null;
+    private DcMotorEx pollFly = null;
+    // Requested shooter state and previous trigger sample for press detection.
+    private boolean toggleOutake = false;
+    private boolean previousShooterTriggerPressed = false;
+    private double speed;
+    // Driver speed multipliers and mechanism power magnitudes.
+    private static final double DRIVE_SPEED = 1.0;
+    private static final double SLOW_DRIVE_SPEED = 0.5;
+    private static final double SWEEPER_POWER = 0.75;
+    private static final double ESOPHAGUS_POWER = 1.0;
+    private static final double FEEDER_POWER = 1.0;
+    // Velocity target; actual speed depends on the encoder conversion and hardware.
+    private static final double SHOOTER_RPM = 5000;
+    // Named for the controls until the physical latch positions are confirmed.
+    private static final double LATCH_DPAD_UP_POSITION = 0.730;
+    private static final double LATCH_DPAD_DOWN_POSITION = 0.390;
+    // Assumed encoder ticks per revolution of the shaft whose RPM is commanded.
+    // Verify the motor encoder and gearing before interpreting this as flywheel RPM.
+    private static final double MOTOR_TICKS_PER_REV = 103.8;
 
     @Override
     public void runOpMode() {
@@ -84,21 +91,21 @@ public class BasicDrive extends LinearOpMode {
         fr = hardwareMap.get(DcMotor.class, "fr");
         br = hardwareMap.get(DcMotor.class, "br");
 
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
+        esophagus = hardwareMap.get(DcMotor.class, "esophagus");
+        pollFly = hardwareMap.get(DcMotorEx.class, "pollFly");
+        sweeper = hardwareMap.get(DcMotor.class, "sweeper");
+        latch = hardwareMap.get(Servo.class, "latch");
+        feeder = hardwareMap.get(CRServo.class, "feeder");
+        // Continuous-rotation servos use power (-1 to 1), not position.
+        feeder.setPower(0);
+        speed = DRIVE_SPEED;
+        // Current hardware convention: reverse the left drive motors and shooter.
+        // Validate directions physically before changing this configuration.
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
         fr.setDirection(DcMotor.Direction.FORWARD);
         br.setDirection(DcMotor.Direction.FORWARD);
-
+        pollFly.setDirection(DcMotorEx.Direction.REVERSE);
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -110,20 +117,20 @@ public class BasicDrive extends LinearOpMode {
         while (opModeIsActive()) {
             double max;
 
-            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+            // Robot-relative requests: forward/back, strafe, and turn.
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  gamepad1.right_stick_x;
 
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
+            // Mix translation and rotation into the four mecanum wheel commands.
+
             double frontLeftPower  = axial + lateral + yaw;
             double frontRightPower = axial - lateral - yaw;
             double backLeftPower   = axial - lateral + yaw;
             double backRightPower  = axial + lateral - yaw;
 
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
+            // Scale all wheels equally when any magnitude exceeds 1.0.
+            // This preserves command ratios; it does not guarantee physical tracking.
             max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
             max = Math.max(max, Math.abs(backLeftPower));
             max = Math.max(max, Math.abs(backRightPower));
@@ -135,33 +142,72 @@ public class BasicDrive extends LinearOpMode {
                 backRightPower  /= max;
             }
 
-            // This is test code:
-            //
-            // Uncomment the following code to test your motor directions.
-            // Each button should make the corresponding motor run FORWARD.
-            //   1) First get all the motors to take to correct positions on the robot
-            //      by adjusting your Robot Configuration if necessary.
-            //   2) Then make sure they run in the correct direction by modifying the
-            //      the setDirection() calls above.
-            // Once the correct motors move in the correct direction re-comment this code.
-
-            /*
-            frontLeftPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            backLeftPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            frontRightPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
-
+            // Apply the speed multiplier after normalization to preserve wheel ratios.
+            boolean slowDrive = gamepad1.b;
+            if (slowDrive) {
+                speed = SLOW_DRIVE_SPEED;
+            } else {
+                speed = DRIVE_SPEED;
+            }
             // Send calculated power to wheels
-            fl.setPower(frontLeftPower);
-            fr.setPower(frontRightPower);
-            bl.setPower(backLeftPower);
-            br.setPower(backRightPower);
+            fl.setPower(frontLeftPower * speed);
+            bl.setPower(backLeftPower * speed);
+            br.setPower(backRightPower * speed);
+            fr.setPower(frontRightPower * speed);
+            // Intake/feed are hold-to-run; A takes priority if both buttons are held.
+            if (gamepad2.a) {
+                sweeper.setPower(SWEEPER_POWER);
+                esophagus.setPower(ESOPHAGUS_POWER);
+            } else if (gamepad2.b){
+                sweeper.setPower(-SWEEPER_POWER);
+                esophagus.setPower(-ESOPHAGUS_POWER);
+            } else {
+                sweeper.setPower(0);
+                esophagus.setPower(0);
+            }
+            // Toggle on a released-to-pressed transition, using the SDK trigger threshold.
+            // A trigger already held at START also counts as the first press.
+            boolean shooterTriggerPressed = gamepad2.right_trigger_pressed;
+            if (shooterTriggerPressed && !previousShooterTriggerPressed) {
+                outake(SHOOTER_RPM);
+            }
+            previousShooterTriggerPressed = shooterTriggerPressed;
 
-            // Show the elapsed game time and wheel power.
+            // Hold-to-run feeder control, independent of the shooter toggle.
+            double feederPower = gamepad2.right_bumper ? FEEDER_POWER : 0.0;
+            feeder.setPower(feederPower);
+
+            // No initial latch position is commanded by this OpMode.
+            // Up wins if both directions are pressed; neither sends a new command.
+            if (gamepad2.dpad_up) {
+                latch.setPosition(LATCH_DPAD_UP_POSITION);
+            } else if (gamepad2.dpad_down) {
+                latch.setPosition(LATCH_DPAD_DOWN_POSITION);
+            }
+            // Show commanded outputs, not measured wheel speeds or shooter RPM.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
+            telemetry.addData("Drive mode", slowDrive ? "Slow" : "Normal");
+            telemetry.addData("Front power L/R", "%4.2f, %4.2f", frontLeftPower * speed, frontRightPower * speed);
+            telemetry.addData("Back power L/R", "%4.2f, %4.2f", backLeftPower * speed, backRightPower * speed);
+            telemetry.addData("Shooter", toggleOutake ? "Enabled" : "Disabled");
+            telemetry.addData("Shooter target RPM", "%.0f", toggleOutake ? SHOOTER_RPM : 0.0);
+            telemetry.addData("Latch commanded position", "%.3f", latch.getPosition());
+            telemetry.addData("Feeder commanded power", "%.1f", feederPower);
             telemetry.update();
         }
-    }}
+    }
+    /** Commands encoder velocity in ticks/second; zero requests a stopped shooter. */
+    protected void setShooterRpm(double rpm) {
+        double tps = rpmToTicksPerSec(rpm);
+        pollFly.setVelocity(tps);
+    }
+    // Convert revolutions/minute to encoder ticks/second using the assumed ratio.
+    private double rpmToTicksPerSec(double rpm) {
+        return (rpm * MOTOR_TICKS_PER_REV) / 60.0;
+    }
+    // Issue the next velocity target, then record that requested on/off state.
+    protected void outake(double rpm) {
+        setShooterRpm(toggleOutake ? 0 : rpm);
+        toggleOutake = !toggleOutake;
+    }
+}

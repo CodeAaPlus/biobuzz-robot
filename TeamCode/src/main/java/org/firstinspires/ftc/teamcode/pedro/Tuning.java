@@ -28,6 +28,10 @@ public class Tuning {
         return new Tests(hardwareMap -> new Mecanum(hardwareMap, Constants.drivetrainConfig), (hardwareMap -> new ThreeWheelLocalizer(hardwareMap, Constants.localizerConfig)), () -> new Foresight(Constants.foresightConfig));
     }
     @Tuner
+    public static Procedure twoWheelTuner() {
+        return new TwoWheelTuner();
+    }
+    @Tuner
     public static Procedure foresightTuner() {
         return new ForesightTuner((hardwareMap) -> new ThreeWheelLocalizer(hardwareMap, Constants.localizerConfig), (hardwareMap) -> new Mecanum(hardwareMap, Constants.drivetrainConfig));
     }

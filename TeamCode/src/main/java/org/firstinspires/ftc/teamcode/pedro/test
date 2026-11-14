@@ -1,0 +1,30 @@
+/*
+    public static ThreeWheelConfig localizerConfig = new ThreeWheelConfig(c -> {
+            c.leftEncoderName.set("br");
+            c.rightEncoderName.set("bl");
+            c.strafeEncoderName.set("fl");
+            c.leftPodY.set(4.253933988368056);
+            c.rightPodY.set(-4.607220499860984);
+            c.strafePodX.set(-3.588580098718056);
+            c.forwardTicksToInches.set(0.002973619489200135);
+            c.strafeTicksToInches.set(0.002947316713741864);
+            c.turnTicksToRadians.set(0.0026691844784676013);
+            c.leftEncoderDirection.set(Encoder.FORWARD);
+            c.rightEncoderDirection.set(Encoder.REVERSE);
+            c.strafeEncoderDirection.set(Encoder.REVERSE);
+        });
+
+    public static ThreeWheelConfig localizerConfig = new ThreeWheelConfig(c -> {
+            c.leftEncoderName.set("br");
+            c.rightEncoderName.set("bl");
+            c.strafeEncoderName.set("fl");
+            c.leftPodY.set(4.603933988368056);
+            c.rightPodY.set(-3.147220499860984);
+            c.strafePodX.set(-5.088580098718056);
+            c.forwardTicksToInches.set(0.002973619489200135);
+            c.strafeTicksToInches.set(0.002947316713741864);
+            c.turnTicksToRadians.set(0.0026691844784676013);
+            c.leftEncoderDirection.set(Encoder.FORWARD);
+            c.rightEncoderDirection.set(Encoder.REVERSE);
+            c.strafeEncoderDirection.set(Encoder.REVERSE);
+        });

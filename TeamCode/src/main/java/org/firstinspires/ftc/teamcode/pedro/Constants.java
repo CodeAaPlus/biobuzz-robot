@@ -35,6 +35,7 @@ public class Constants {
         c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
         c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
     });
+
     public static ThreeWheelConfig localizerConfig = new ThreeWheelConfig(c -> {
         c.leftEncoderName.set("br");
         c.rightEncoderName.set("bl");
@@ -44,7 +45,7 @@ public class Constants {
         c.strafePodX.set(-4.789307043502153);
         c.forwardTicksToInches.set(0.002973619489200135);
         c.strafeTicksToInches.set(0.002947316713741864);
-        c.turnTicksToRadians.set(0.002794435080373991);
+        c.turnTicksToRadians.set(0.00287916491911246);
         c.leftEncoderDirection.set(Encoder.FORWARD);
         c.rightEncoderDirection.set(Encoder.REVERSE);
         c.strafeEncoderDirection.set(Encoder.REVERSE);
