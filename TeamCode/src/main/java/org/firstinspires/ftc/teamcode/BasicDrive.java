@@ -69,11 +69,11 @@ public class BasicDrive extends LinearOpMode {
     // Driver speed multipliers and mechanism power magnitudes.
     private static final double DRIVE_SPEED = 1.0;
     private static final double SLOW_DRIVE_SPEED = 0.5;
-    private static final double SWEEPER_POWER = 0.75;
+    private static final double SWEEPER_POWER = 1.0;
     private static final double ESOPHAGUS_POWER = 1.0;
     private static final double FEEDER_POWER = 1.0;
     // Velocity target; actual speed depends on the encoder conversion and hardware.
-    private static final double SHOOTER_RPM = 5000;
+    private static final double SHOOTER_RPM = 3500;
     // Named for the controls until the physical latch positions are confirmed.
     private static final double LATCH_DPAD_UP_POSITION = 0.730;
     private static final double LATCH_DPAD_DOWN_POSITION = 0.390;
