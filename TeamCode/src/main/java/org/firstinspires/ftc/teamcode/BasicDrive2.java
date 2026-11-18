@@ -50,8 +50,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @Configurable
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-public class BasicDrive extends LinearOpMode {
+@TeleOp(name="test", group="Linear OpMode")
+public class BasicDrive2 extends LinearOpMode {
 
     // Match timer, drivetrain motors (front/back, left/right), and mechanisms.
     private ElapsedTime runtime = new ElapsedTime();
