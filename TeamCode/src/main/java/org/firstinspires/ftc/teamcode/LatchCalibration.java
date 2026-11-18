@@ -9,7 +9,7 @@ public class LatchCalibration extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Servo latch = hardwareMap.get(Servo.class, "latch");
+        Servo latch = hardwareMap.get(Servo.class, "feeder");
 
         double position = 0.5;
         boolean lastUp = false;
