@@ -75,7 +75,7 @@ public class BasicDrive extends LinearOpMode {
     public static volatile double ESOPHAGUS_POWER = 1.0;
     public static volatile double FEEDER_POWER = 1.0;
     // Velocity target; actual speed depends on the encoder conversion and hardware.
-    public static volatile double SHOOTER_RPM = 3500;
+    public static volatile double SHOOTER_RPM = 4000;
     // Named for the controls until the physical latch positions are confirmed.
     public static volatile double LATCH_DPAD_UP_POSITION = 0.730;
     public static volatile double LATCH_DPAD_DOWN_POSITION = 0.390;
