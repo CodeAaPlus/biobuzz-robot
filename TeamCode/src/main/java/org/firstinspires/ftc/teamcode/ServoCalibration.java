@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "Latch Calibration")
-public class LatchCalibration extends LinearOpMode {
+@TeleOp(name = "Servo Calibration")
+public class ServoCalibration extends LinearOpMode {
 
     @Override
     public void runOpMode() {
