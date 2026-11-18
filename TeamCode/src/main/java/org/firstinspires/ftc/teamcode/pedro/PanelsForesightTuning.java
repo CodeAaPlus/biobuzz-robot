@@ -1,11 +1,8 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.pedro;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.algorithm.ForesightConfig;
 import com.pedropathing.controllers.Controller;
-import com.pedropathing.math.Matrix;
-
-import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Configurable
 public class PanelsForesightTuning {
