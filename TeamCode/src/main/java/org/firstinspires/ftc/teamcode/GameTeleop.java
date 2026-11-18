@@ -49,8 +49,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @Configurable
-@TeleOp(name="Basic: Servo Feeder", group="Linear OpMode")
-public class BasicDriveServoFeeder extends LinearOpMode {
+@TeleOp(name="Game Teleop", group="Linear OpMode")
+public class GameTeleop extends LinearOpMode {
 
     // Match timer, drivetrain motors (front/back, left/right), and mechanisms.
     private ElapsedTime runtime = new ElapsedTime();
