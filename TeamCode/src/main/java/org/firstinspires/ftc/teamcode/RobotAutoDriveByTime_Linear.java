@@ -76,10 +76,10 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-        feeder.setPosition(BasicDriveServoFeeder.FEEDER_RETRACTED_POSITION);
+        feeder.setPosition(GameTeleop.FEEDER_RETRACTED_POSITION);
         try {
             // BasicDrive's encoder conversion remains configurable in Panels.
-            pollFly.setVelocity(SHOOTER_RPM * BasicDrive.MOTOR_TICKS_PER_REV / 60.0);
+            pollFly.setVelocity(SHOOTER_RPM * GameTeleop.MOTOR_TICKS_PER_REV / 60.0);
             runtime.reset();
             while (opModeIsActive() && runtime.seconds() < SPIN_UP_SECONDS) {
                 telemetry.addData("Status", "Spinning up: %.1f s", runtime.seconds());
@@ -88,14 +88,14 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
             }
 
             for (int block = 0; block < FEED_BLOCKS && opModeIsActive(); block++) {
-                feeder.setPosition(BasicDriveServoFeeder.FEEDER_EXTENDED_POSITION);
+                feeder.setPosition(GameTeleop.FEEDER_EXTENDED_POSITION);
                 runtime.reset();
                 while (opModeIsActive() && runtime.seconds() < FEED_SECONDS) {
                     telemetry.addData("Status", "Feeding: %.1f s", runtime.seconds());
                     telemetry.update();
                     idle();
                 }
-                feeder.setPosition(BasicDriveServoFeeder.FEEDER_RETRACTED_POSITION);
+                feeder.setPosition(GameTeleop.FEEDER_RETRACTED_POSITION);
 
                 if (block < FEED_BLOCKS - 1 && opModeIsActive()) {
                     runtime.reset();
@@ -108,7 +108,7 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
             }
 
             // Finish shooting before starting the forward drive.
-            feeder.setPosition(BasicDriveServoFeeder.FEEDER_RETRACTED_POSITION);
+            feeder.setPosition(GameTeleop.FEEDER_RETRACTED_POSITION);
             pollFly.setVelocity(0);
             if (opModeIsActive()) {
                 fl.setPower(FORWARD_POWER);
@@ -123,7 +123,7 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
                 }
             }
         } finally {
-            feeder.setPosition(BasicDriveServoFeeder.FEEDER_RETRACTED_POSITION);
+            feeder.setPosition(GameTeleop.FEEDER_RETRACTED_POSITION);
             pollFly.setVelocity(0);
             fl.setPower(0);
             bl.setPower(0);
