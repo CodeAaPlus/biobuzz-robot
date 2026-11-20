@@ -224,6 +224,18 @@ public final class RobotSubsystems {
 
         private final DcMotorEx fl, bl, fr, br;
         private final IMU imu;
+        private LinearOpMode opMode;
+
+        /**
+         * Store the running OpMode so move methods can check {@code opModeIsActive()},
+         * post telemetry, and yield. Call this once after {@code waitForStart()}.
+         */
+        public void init(LinearOpMode opMode) { this.opMode = opMode; }
+
+        private void checkInit() {
+            if (opMode == null)
+                throw new IllegalStateException("Call robot.odometry.init(this) before moving.");
+        }
 
         private Odometry(HardwareMap map) {
             fl = map.get(DcMotorEx.class, "fl");
@@ -291,31 +303,37 @@ public final class RobotSubsystems {
          * @param timeoutSeconds  abort after this many seconds
          * @return a short human-readable result string (e.g. "Distance reached", "Timed out")
          */
-        public String driveForward(LinearOpMode opMode, double inches, double power,
-                                   double timeoutSeconds) {
+        /**
+         * Drive straight forward while holding the heading captured at the start of the call.
+         *
+         * @param inches          positive distance to travel
+         * @param power           drive power — must be in (0, {@value #MAX_TRANSLATION_POWER}]
+         * @param timeoutSeconds  abort after this many seconds
+         * @return a short human-readable result string (e.g. "Distance reached", "Timed out")
+         */
+        public String driveForward(double inches, double power, double timeoutSeconds) {
             if (!Double.isFinite(inches) || inches <= 0)
                 throw new IllegalArgumentException("Forward distance must be positive and finite");
-            return translate(opMode, inches, power, timeoutSeconds, false);
+            return translate(inches, power, timeoutSeconds, false);
         }
 
         /**
          * Strafe right (positive) or left (negative) while holding the starting heading.
          *
-         * @param opMode          the running LinearOpMode
          * @param inches          signed strafe distance
          * @param power           drive power — must be in (0, {@value #MAX_TRANSLATION_POWER}]
          * @param timeoutSeconds  abort after this many seconds
          * @return a short human-readable result string
          */
-        public String strafe(LinearOpMode opMode, double inches, double power,
-                             double timeoutSeconds) {
+        public String strafe(double inches, double power, double timeoutSeconds) {
             if (!Double.isFinite(inches) || inches == 0)
                 throw new IllegalArgumentException("Strafe distance must be nonzero and finite");
-            return translate(opMode, inches, power, timeoutSeconds, true);
+            return translate(inches, power, timeoutSeconds, true);
         }
 
-        private String translate(LinearOpMode opMode, double inches, double power,
+        private String translate(double inches, double power,
                                  double timeoutSeconds, boolean sideways) {
+            checkInit();
             if (!Double.isFinite(power) || power <= 0 || power > MAX_TRANSLATION_POWER ||
                     !Double.isFinite(timeoutSeconds) || timeoutSeconds <= 0)
                 throw new IllegalArgumentException(
@@ -327,8 +345,8 @@ public final class RobotSubsystems {
             String result = "Stopped";
             try {
                 while (opMode.opModeIsActive() && timer.seconds() < timeoutSeconds) {
-                    double forwardIn  = Math.abs(forwardTicks()  - forwardStart)  * FORWARD_INCHES_PER_TICK;
-                    double sidewaysIn = Math.abs(sidewaysTicks() - sidewaysStart) * SIDEWAYS_INCHES_PER_TICK;
+                    double forwardIn     = Math.abs(forwardTicks()  - forwardStart)  * FORWARD_INCHES_PER_TICK;
+                    double sidewaysIn    = Math.abs(sidewaysTicks() - sidewaysStart) * SIDEWAYS_INCHES_PER_TICK;
                     double distance      = sideways ? sidewaysIn : forwardIn;
                     double crossAxisDrift = sideways ? forwardIn  : sidewaysIn;
                     double error = headingError(headingTarget, headingDegrees());
@@ -360,12 +378,12 @@ public final class RobotSubsystems {
         /**
          * Turn in place relative to the current IMU heading.
          *
-         * @param opMode          the running LinearOpMode
          * @param degrees         signed turn — positive is counter-clockwise, range ±180
          * @param timeoutSeconds  abort after this many seconds
          * @return a short human-readable result string
          */
-        public String turn(LinearOpMode opMode, double degrees, double timeoutSeconds) {
+        public String turn(double degrees, double timeoutSeconds) {
+            checkInit();
             if (!Double.isFinite(degrees) || degrees == 0 || Math.abs(degrees) > 180 ||
                     !Double.isFinite(timeoutSeconds) || timeoutSeconds <= 0)
                 throw new IllegalArgumentException(

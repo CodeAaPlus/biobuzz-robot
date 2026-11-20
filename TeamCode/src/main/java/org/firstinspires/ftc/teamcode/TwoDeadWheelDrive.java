@@ -11,8 +11,9 @@ import org.firstinspires.ftc.teamcode.subsystems.RobotSubsystems;
  * New auto OpModes should use {@code RobotSubsystems} directly:
  * <pre>
  *     RobotSubsystems robot = new RobotSubsystems(hardwareMap);
- *     robot.odometry.driveForward(this, 24.0, 0.20, 5.0);
- *     robot.odometry.turn(this, -90.0, 3.0);
+ *     robot.odometry.init(this);          // call once after waitForStart()
+ *     robot.odometry.driveForward(24.0, 0.20, 5.0);
+ *     robot.odometry.turn(-90.0, 3.0);
  *     robot.stop();
  * </pre>
  */
@@ -20,34 +21,32 @@ public final class TwoDeadWheelDrive {
     private final RobotSubsystems.Odometry odometry;
 
     public TwoDeadWheelDrive(HardwareMap map) {
-        // Initialise only the Odometry subsystem to avoid claiming TeleOp hardware.
         odometry = new RobotSubsystems(map).odometry;
     }
 
     public String driveForward(LinearOpMode opMode, double inches, double power,
                                double timeoutSeconds) {
-        return odometry.driveForward(opMode, inches, power, timeoutSeconds);
+        odometry.init(opMode);
+        return odometry.driveForward(inches, power, timeoutSeconds);
     }
 
     public String strafe(LinearOpMode opMode, double inches, double power,
                          double timeoutSeconds) {
-        return odometry.strafe(opMode, inches, power, timeoutSeconds);
+        odometry.init(opMode);
+        return odometry.strafe(inches, power, timeoutSeconds);
     }
 
     public String turn(LinearOpMode opMode, double degrees, double timeoutSeconds) {
-        return odometry.turn(opMode, degrees, timeoutSeconds);
+        odometry.init(opMode);
+        return odometry.turn(degrees, timeoutSeconds);
     }
 
     public double headingDegrees() { return odometry.headingDegrees(); }
     public int forwardTicks()      { return odometry.forwardTicks(); }
     public int sidewaysTicks()     { return odometry.sidewaysTicks(); }
 
-    /** Convenience pass-through kept for the existing test OpMode. */
-    public void drive(double forward, double sideways, double turn) {
-        // Not exposed on Odometry (drive is private), so just call stop.
-        // TwoDeadWheelAuto only calls drive(0,0,0) to coast — stop() is equivalent.
-        stop();
-    }
+    /** Kept for TwoDeadWheelAuto's coast call; equivalent to stop(). */
+    public void drive(double forward, double sideways, double turn) { stop(); }
 
     public void stop() { odometry.stop(); }
 }
