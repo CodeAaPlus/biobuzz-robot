@@ -204,9 +204,10 @@ public final class RobotSubsystems {
      * </ul>
      */
     public static final class Odometry {
-        // Calibrated in TwoWheelTuner; do not edit without re-running the tuner.
-        private static final double FORWARD_INCHES_PER_TICK  = 0.002973619489200135;
-        private static final double SIDEWAYS_INCHES_PER_TICK = 0.002947316713741864;
+        // Measured 2026-11-19: 15962 ticks over 48 inches for both pods.
+        // 48.0 / 15962 = 0.003007143. Re-measure if pods or gearing change.
+        private static final double FORWARD_INCHES_PER_TICK  = 0.003007143;
+        private static final double SIDEWAYS_INCHES_PER_TICK = 0.003007143;
         // Safety limits — movement stops if these are exceeded mid-move.
         private static final double MAX_TRANSLATION_POWER      = 0.25;
         private static final double MAX_CROSS_AXIS_DRIFT_INCHES = 3.0;
