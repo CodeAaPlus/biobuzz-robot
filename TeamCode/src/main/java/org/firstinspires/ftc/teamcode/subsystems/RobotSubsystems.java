@@ -209,7 +209,7 @@ public final class RobotSubsystems {
         private static final double FORWARD_INCHES_PER_TICK  = 0.003007143;
         private static final double SIDEWAYS_INCHES_PER_TICK = 0.003007143;
         // Safety limits — movement stops if these are exceeded mid-move.
-        private static final double MAX_TRANSLATION_POWER      = 0.55;
+        private static final double MAX_TRANSLATION_POWER      = 0.25;
         private static final double MAX_CROSS_AXIS_DRIFT_INCHES = 3.0;
         private static final double MAX_HEADING_ERROR_DEGREES  = 12.0;
         // Heading-hold P controller used during translation.
@@ -355,10 +355,9 @@ public final class RobotSubsystems {
                         result = "Distance reached"; break;
                     }
                     double correction = clip(HEADING_KP * error, MAX_HEADING_CORRECTION);
-                    // Negate correction because drive() yaw > 0 turns clockwise, but IMU angle is CCW-positive.
                     drive(sideways ? 0 : power,
                           sideways ? Math.copySign(power, inches) : 0,
-                          -correction);
+                          correction);
                     opMode.telemetry.addData(sideways ? "Sideways (in)" : "Forward (in)",
                             "%.2f / %.2f", distance, Math.abs(inches));
                     opMode.telemetry.addData("Cross-axis drift (in)", "%.2f", crossAxisDrift);
@@ -400,8 +399,7 @@ public final class RobotSubsystems {
                     }
                     double power = Math.copySign(
                             Math.max(0.07, Math.min(MAX_TURN_POWER, 0.012 * Math.abs(error))), error);
-                    // Negate power because drive() yaw > 0 turns clockwise, but IMU angle is CCW-positive.
-                    drive(0, 0, -power);
+                    drive(0, 0, power);
                     opMode.telemetry.addData("Turn error (deg)", "%.1f", error);
                     opMode.telemetry.addData("Turn power", "%.2f", power);
                     opMode.telemetry.update();

@@ -28,7 +28,7 @@ public class SampleAuto extends LinearOpMode {
     // --- Tunable constants ---
     private static final double SPIN_UP_TIMEOUT_SECONDS = 4.0;  // max wait for shooter to reach speed
     private static final double FEED_SECONDS            = 1.5;  // how long to run the feeder
-    private static final double DRIVE_POWER             = 0.55; // must be <= 0.25 (odometry limit)
+    private static final double DRIVE_POWER             = 0.25; // must be <= 0.25 (odometry limit)
 
     @Override
     public void runOpMode() {
