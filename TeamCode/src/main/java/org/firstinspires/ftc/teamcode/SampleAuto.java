@@ -28,7 +28,7 @@ public class SampleAuto extends LinearOpMode {
     // --- Tunable constants ---
     private static final double SPIN_UP_TIMEOUT_SECONDS = 4.0;  // max wait for shooter to reach speed
     private static final double FEED_SECONDS            = 1.5;  // how long to run the feeder
-    private static final double DRIVE_POWER             = 0.25; // must be <= 0.25 (odometry limit)
+    private static final double DRIVE_POWER             = 0.55; // must be <= 0.25 (odometry limit)
 
     @Override
     public void runOpMode() {
@@ -53,24 +53,22 @@ public class SampleAuto extends LinearOpMode {
         try {
             // ----------------------------------------------------------------
             // Step 1: Spin up the shooter, wait until it reaches speed or timeout.
-            // ----------------------------------------------------------------
-
-            timer.reset();
+            // ----------------------------------------------------------------f
 
 
 
             // ----------------------------------------------------------------
             // Step 4: Drive forward 24 inches, IMU holds starting heading.
             // ----------------------------------------------------------------
-            String r1 = robot.odometry.driveForward(24.0, DRIVE_POWER, 6.0);
-            telemetry.addData("Drive forward", r1);
+            //String r1 = robot.odometry.driveForward(24.0, DRIVE_POWER, 6.0);
+            //telemetry.addData("Drive forward", r1);
             telemetry.update();
 
             // ----------------------------------------------------------------
             // Step 5: Turn 90 degrees counter-clockwise.
             // ----------------------------------------------------------------
-            String r2 = robot.odometry.turn(90.0, 9.0);
-            telemetry.addData("Turn 90", r2);
+            //String r2 = robot.odometry.turn(90.0, 9.0);
+            //telemetry.addData("Turn 90", r2);
             telemetry.update();
 
             // ----------------------------------------------------------------

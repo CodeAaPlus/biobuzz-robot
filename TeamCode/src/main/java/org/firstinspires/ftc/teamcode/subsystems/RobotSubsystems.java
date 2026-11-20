@@ -209,14 +209,14 @@ public final class RobotSubsystems {
         private static final double FORWARD_INCHES_PER_TICK  = 0.003007143;
         private static final double SIDEWAYS_INCHES_PER_TICK = 0.003007143;
         // Safety limits — movement stops if these are exceeded mid-move.
-        private static final double MAX_TRANSLATION_POWER      = 0.25;
+        private static final double MAX_TRANSLATION_POWER      = 0.55;
         private static final double MAX_CROSS_AXIS_DRIFT_INCHES = 3.0;
         private static final double MAX_HEADING_ERROR_DEGREES  = 12.0;
         // Heading-hold P controller used during translation.
         private static final double HEADING_KP              = 0.015;
-        private static final double MAX_HEADING_CORRECTION  = 0.20;
+        private static final double MAX_HEADING_CORRECTION  = 0.10;
         // Turn controller limits.
-        private static final double MAX_TURN_POWER          = 0.50;
+        private static final double MAX_TURN_POWER          = 0.20;
         private static final double TURN_TOLERANCE_DEGREES  = 3.0;
 
         private final DcMotorEx fl, bl, fr, br;
