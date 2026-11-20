@@ -355,9 +355,10 @@ public final class RobotSubsystems {
                         result = "Distance reached"; break;
                     }
                     double correction = clip(HEADING_KP * error, MAX_HEADING_CORRECTION);
+                    // Negate correction because drive() yaw > 0 turns clockwise, but IMU angle is CCW-positive.
                     drive(sideways ? 0 : power,
                           sideways ? Math.copySign(power, inches) : 0,
-                          correction);
+                          -correction);
                     opMode.telemetry.addData(sideways ? "Sideways (in)" : "Forward (in)",
                             "%.2f / %.2f", distance, Math.abs(inches));
                     opMode.telemetry.addData("Cross-axis drift (in)", "%.2f", crossAxisDrift);
@@ -399,7 +400,8 @@ public final class RobotSubsystems {
                     }
                     double power = Math.copySign(
                             Math.max(0.07, Math.min(MAX_TURN_POWER, 0.012 * Math.abs(error))), error);
-                    drive(0, 0, power);
+                    // Negate power because drive() yaw > 0 turns clockwise, but IMU angle is CCW-positive.
+                    drive(0, 0, -power);
                     opMode.telemetry.addData("Turn error (deg)", "%.1f", error);
                     opMode.telemetry.addData("Turn power", "%.2f", power);
                     opMode.telemetry.update();
