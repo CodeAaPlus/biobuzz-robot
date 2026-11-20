@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-/** Ivy TeleOp with a shooter-speed gate on the feeder. BasicDrive remains the manual reference. */
+/** Ivy TeleOp with position-servo feeder toggled by right bumper. BasicDrive remains the manual reference. */
 @TeleOp(name = "Command Drive", group = "Linear OpMode")
 public class CommandDrive extends LinearOpMode {
     @Override
@@ -17,7 +17,7 @@ public class CommandDrive extends LinearOpMode {
         Command manualDrive = robot.drive.manual(gamepad1);
         Command intakeForward = robot.intake.run(1);
         Command intakeReverse = robot.intake.run(-1);
-        Command feederRun = robot.feeder.run(robot.shooter);
+
         ElapsedTime runtime = new ElapsedTime();
 
         telemetry.addData("Status", "Initialized");
@@ -33,7 +33,7 @@ public class CommandDrive extends LinearOpMode {
         boolean previousTrigger = false;
         int previousLatchDirection = 0;
         int previousIntakeDirection = 0;
-        boolean previousFeeder = false;
+        boolean previousFeederBumper = false;
         try {
             while (opModeIsActive()) {
                 // A takes priority when both intake buttons are held.
@@ -46,12 +46,10 @@ public class CommandDrive extends LinearOpMode {
                     previousIntakeDirection = intakeDirection;
                 }
 
-                boolean feederHeld = gamepad2.right_bumper;
-                if (feederHeld != previousFeeder) {
-                    if (feederHeld) Scheduler.schedule(feederRun);
-                    else Scheduler.cancel(feederRun);
-                    previousFeeder = feederHeld;
-                }
+                // Toggle feeder position on each right-bumper press (same as GameTeleop).
+                boolean feederBumper = gamepad2.right_bumper;
+                if (feederBumper && !previousFeederBumper) Scheduler.schedule(robot.feeder.toggle());
+                previousFeederBumper = feederBumper;
 
                 boolean trigger = gamepad2.right_trigger_pressed;
                 if (trigger && !previousTrigger) Scheduler.schedule(robot.shooter.toggle());
@@ -78,7 +76,7 @@ public class CommandDrive extends LinearOpMode {
                 telemetry.addData("Feed ready at RPM", "%.0f", robot.shooter.feedReadyRpm());
                 telemetry.addData("Feed ready", robot.shooter.readyToFeed() ? "Yes" : "No");
                 telemetry.addData("Latch commanded position", "%.3f", robot.latch.position());
-                telemetry.addData("Feeder commanded power", "%.1f", robot.feeder.commandedPower());
+                telemetry.addData("Feeder position", robot.feeder.isExtended() ? "Extended" : "Retracted");
                 telemetry.update();
             }
         } finally {

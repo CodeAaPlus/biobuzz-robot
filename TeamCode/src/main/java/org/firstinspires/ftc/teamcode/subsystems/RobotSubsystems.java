@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.pedropathing.ivy.Command;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -157,40 +157,36 @@ public final class RobotSubsystems {
     }
 
     public static final class Feeder {
-        private static final double POWER = 1.0;
-        private final CRServo motor;
-        private double commandedPower;
-        private boolean feedStarted;
+        // Match the positions used in GameTeleop.
+        private static final double RETRACTED = 0.510;
+        private static final double EXTENDED   = 0.950;
+        private final Servo servo;
+        private boolean extended;
 
         private Feeder(HardwareMap map) {
-            motor = map.get(CRServo.class, "feeder");
-            stop();
+            servo = map.get(Servo.class, "feeder");
+            retract(); // safe starting position
         }
 
-        /** Wait for shooter speed before starting; keep feeding through shot-induced speed dips. */
-        public Command run(Shooter shooter) {
+        /** Toggle between extended and retracted; instant command. */
+        public Command toggle() {
             return Command.build()
-                    .setStart(() -> { feedStarted = false; stop(); })
-                    .setExecute(() -> {
-                        if (!shooter.enabled()) {
-                            feedStarted = false;
-                            stop();
-                        } else if (!feedStarted && shooter.readyToFeed()) {
-                            feedStarted = true;
-                            setPower(POWER);
-                        }
-                    })
-                    .setEnd(reason -> { feedStarted = false; stop(); })
+                    .setStart(() -> { if (extended) retract(); else extend(); })
+                    .setDone(() -> true)
                     .requiring(this);
         }
 
-        private void setPower(double power) {
-            commandedPower = power;
-            motor.setPower(power);
-        }
+        /** Extend (shoot) the feeder servo. */
+        public void extend()  { extended = true;  servo.setPosition(EXTENDED); }
 
-        public double commandedPower() { return commandedPower; }
-        public void stop() { setPower(0); }
+        /** Retract the feeder servo to the resting position. */
+        public void retract() { extended = false; servo.setPosition(RETRACTED); }
+
+        public boolean isExtended()     { return extended; }
+        public double commandedPosition() { return servo.getPosition(); }
+
+        /** Alias for retract(); called by RobotSubsystems.stop(). */
+        public void stop() { retract(); }
     }
 
     /**
