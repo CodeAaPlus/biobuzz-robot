@@ -214,9 +214,9 @@ public final class RobotSubsystems {
         private static final double MAX_HEADING_ERROR_DEGREES  = 12.0;
         // Heading-hold P controller used during translation.
         private static final double HEADING_KP              = 0.015;
-        private static final double MAX_HEADING_CORRECTION  = 0.10;
+        private static final double MAX_HEADING_CORRECTION  = 0.20;
         // Turn controller limits.
-        private static final double MAX_TURN_POWER          = 0.20;
+        private static final double MAX_TURN_POWER          = 0.50;
         private static final double TURN_TOLERANCE_DEGREES  = 3.0;
 
         private final DcMotorEx fl, bl, fr, br;
